@@ -88,42 +88,52 @@ function getRecommendations() {
 function renderPrefilter(category) {
   const block = document.getElementById('configPrefilter');
   if (!block) return;
-  const needCpu = category === 'cpu' && configFilter.cpu == null;
-  const needGpu = category === 'gpu' && configFilter.gpu == null;
-  const needCooling = category === 'cooling' && configFilter.cooling == null;
-  if (!needCpu && !needGpu && !needCooling) {
+  const hasCpu = category === 'cpu';
+  const hasGpu = category === 'gpu';
+  const hasCooling = category === 'cooling';
+  if (!hasCpu && !hasGpu && !hasCooling) {
     block.classList.add('d-none');
     block.innerHTML = '';
     return;
   }
   block.classList.remove('d-none');
-  if (needCpu) {
+  var currentVal = configFilter[category === 'cpu' ? 'cpu' : category === 'gpu' ? 'gpu' : 'cooling'];
+  if (hasCpu) {
     block.innerHTML = `
       <span class="text-muted small me-2">Производитель:</span>
-      <button type="button" class="config-prefilter-btn" data-filter="cpu" data-value="intel">Intel</button>
-      <button type="button" class="config-prefilter-btn" data-filter="cpu" data-value="amd">AMD</button>
+      <button type="button" class="config-prefilter-btn${currentVal === 'intel' ? ' active' : ''}" data-filter="cpu" data-value="intel">Intel</button>
+      <button type="button" class="config-prefilter-btn${currentVal === 'amd' ? ' active' : ''}" data-filter="cpu" data-value="amd">AMD</button>
+      ${currentVal ? '<button type="button" class="config-prefilter-reset">✕</button>' : ''}
     `;
-  } else if (needGpu) {
+  } else if (hasGpu) {
     block.innerHTML = `
       <span class="text-muted small me-2">Производитель:</span>
-      <button type="button" class="config-prefilter-btn" data-filter="gpu" data-value="nvidia">NVIDIA</button>
-      <button type="button" class="config-prefilter-btn" data-filter="gpu" data-value="amd">AMD</button>
+      <button type="button" class="config-prefilter-btn${currentVal === 'nvidia' ? ' active' : ''}" data-filter="gpu" data-value="nvidia">NVIDIA</button>
+      <button type="button" class="config-prefilter-btn${currentVal === 'amd' ? ' active' : ''}" data-filter="gpu" data-value="amd">AMD</button>
+      ${currentVal ? '<button type="button" class="config-prefilter-reset">✕</button>' : ''}
     `;
-  } else if (needCooling) {
+  } else if (hasCooling) {
     block.innerHTML = `
       <span class="text-muted small me-2">Тип:</span>
-      <button type="button" class="config-prefilter-btn" data-filter="cooling" data-value="air">Воздушное</button>
-      <button type="button" class="config-prefilter-btn" data-filter="cooling" data-value="water">Водяное</button>
+      <button type="button" class="config-prefilter-btn${currentVal === 'air' ? ' active' : ''}" data-filter="cooling" data-value="air">Воздушное</button>
+      <button type="button" class="config-prefilter-btn${currentVal === 'water' ? ' active' : ''}" data-filter="cooling" data-value="water">Водяное</button>
+      ${currentVal ? '<button type="button" class="config-prefilter-reset">✕</button>' : ''}
     `;
   }
+  var filterKey = hasCpu ? 'cpu' : hasGpu ? 'gpu' : 'cooling';
   block.querySelectorAll('.config-prefilter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       configFilter[btn.dataset.filter] = btn.dataset.value;
-      block.querySelectorAll('.config-prefilter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
       renderGallery(activeCategory);
     });
   });
+  var resetBtn = block.querySelector('.config-prefilter-reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      configFilter[filterKey] = null;
+      renderGallery(activeCategory);
+    });
+  }
 }
 
 function updateCenterVisual() {

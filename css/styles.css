@@ -943,10 +943,6 @@ body > * {
   margin-left: auto;
   font-size: 14px;
 }
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
 .config-step:hover {
   border-color: rgba(167, 139, 250, 0.3);
@@ -1089,6 +1085,23 @@ body > * {
 .config-prefilter-btn.active {
   border-color: var(--synth-accent);
   color: var(--synth-accent);
+}
+
+.config-prefilter-reset {
+  padding: 0.35rem 0.7rem;
+  background: transparent;
+  border: 1px solid rgba(255, 80, 80, 0.4);
+  border-radius: 100px;
+  color: #ff6b6b;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 0.25rem;
+}
+
+.config-prefilter-reset:hover {
+  border-color: #ff6b6b;
+  background: rgba(255, 80, 80, 0.1);
 }
 
 .config-right {
