@@ -9,13 +9,17 @@
   --bg-card-hover: rgba(28, 28, 32, 0.9);
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.12);
-  --text-muted: #c8c8d0;
+  --text-muted: #e0e0e6;
   --glass: rgba(255, 255, 255, 0.03);
   --radius: 12px;
   --radius-lg: 16px;
 }
 
 * { box-sizing: border-box; }
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
 
 .container-1440 {
   max-width: 1440px;
@@ -826,7 +830,6 @@ body > * {
 
 .detail-label {
   color: var(--text-muted);
-  opacity: 0.8;
   flex-shrink: 0;
 }
 
@@ -925,13 +928,13 @@ body > * {
 .config-step.collapsed-step {
   max-height: 36px;
   padding: 0.4rem 1rem;
-  opacity: 0.35;
+  opacity: 0.5;
   font-size: 13px;
 }
 
 .config-step.done-step {
   max-height: 52px;
-  opacity: 0.6;
+  opacity: 1;
   pointer-events: auto;
 }
 
