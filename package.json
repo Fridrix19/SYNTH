@@ -1,11 +1,14 @@
 {
   "name": "synth-pc",
   "private": true,
+  "main": "server.js",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "postinstall": "prisma generate",
+    "build": "prisma generate && node scripts/copy-static-to-public.js",
+    "start": "node server.js",
     "vercel-build": "prisma generate && node scripts/copy-static-to-public.js",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
@@ -16,9 +19,9 @@
   },
   "dependencies": {
     "@prisma/client": "^6.3.1",
-    "nodemailer": "^6.9.16"
-  },
-  "devDependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "nodemailer": "^6.9.16",
     "prisma": "^6.3.1"
   }
 }

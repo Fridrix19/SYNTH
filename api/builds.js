@@ -34,6 +34,11 @@ module.exports = async function handler(req, res) {
     return res.status(200).json(rows.map(rowToJson));
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ error: 'Database unavailable' });
+    const body = { error: 'Database unavailable' };
+    if (process.env.API_DB_DEBUG === '1') {
+      body.prismaCode = e.code;
+      body.hint = e.message ? String(e.message).slice(0, 400) : undefined;
+    }
+    return res.status(500).json(body);
   }
 };

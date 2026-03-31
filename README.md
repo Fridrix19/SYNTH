@@ -101,6 +101,25 @@ npm run db:seed
 
 ---
 
+## Railway
+
+На **Railway** нет serverless-папки `api/` как на Vercel — нужен **один процесс**. В корне **`server.js`** (Express): отдаёт статику из **`public/`** и те же маршруты **`/api/components`**, **`/api/builds`**, **`/api/contact`**.
+
+В **Railway → Variables** задай **`DATABASE_URL`** (и при необходимости `PORT` не трогай — подставит платформа).
+
+В корне репозитория есть **`railpack.json`** с явным **`deploy.startCommand`: `node server.js`** — так Railway **Railpack** не падает с «No start command detected», даже если не прочитал `package.json`.
+
+В настройках сервиса (если панель позволяет переопределить):
+
+- **Build command:** `npm run build`
+- **Start command:** `node server.js` или `npm start`
+
+В **`package.json`** также указано **`"main": "server.js"`** как запасной вариант для детекторов.
+
+После деплоя открой выданный URL: главная, `/api/components`, `/catalog.html`.
+
+---
+
 ## Локальная разработка
 
 ```bash
@@ -109,7 +128,16 @@ npm install
 
 Скопируй `.env.example` в `.env` и укажи `DATABASE_URL` (или только для фронта без API — тогда используются JSON из `data/`).
 
-API как на проде:
+Как на Railway / проде одной командой:
+
+```bash
+npm run build
+npm start
+```
+
+Открой `http://localhost:3000`.
+
+API как на Vercel (только serverless):
 
 ```bash
 npx vercel dev
@@ -128,6 +156,7 @@ npx vercel dev
 | `api/components.js` | GET: комплектующие из БД |
 | `api/builds.js` | GET: готовые сборки из БД |
 | `api/contact.js` | POST: почта (опционально) |
+| `server.js` | Express: статика + `/api/*` для Railway |
 | `lib/prisma.js` | singleton Prisma Client |
 | `prisma/schema.prisma` | модели `Component`, `ReadyBuild` |
 | `prisma/seed.js` | импорт из `data/components.json` + `data/builds.json` |
