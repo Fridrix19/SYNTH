@@ -3,18 +3,13 @@ let componentsDB = null;
 let activeTab = 'all';
 let selectedProductId = null;
 
-const readyBuilds = [
-  { id: 'b1', name: 'Gaming Pro', category: 'builds', cpu: 'intel', gpu: 'nvidia', price: 450000, specs: 'RTX 4090 + i9-14900K', ram: '32 GB DDR5', storage: '2 TB NVMe', cooling: 'AIO 360 RGB' },
-  { id: 'b2', name: 'Gaming Elite', category: 'builds', cpu: 'amd', gpu: 'nvidia', price: 420000, specs: 'RTX 4090 + Ryzen 9 7950X', ram: '32 GB DDR5', storage: '2 TB NVMe', cooling: 'AIO 360' },
-  { id: 'b3', name: 'Gaming', category: 'builds', cpu: 'intel', gpu: 'nvidia', price: 280000, specs: 'RTX 4080 + i7-14700K', ram: '32 GB DDR5', storage: '1 TB NVMe', cooling: 'AIO 240' },
-  { id: 'b4', name: 'Gaming AMD', category: 'builds', cpu: 'amd', gpu: 'amd', price: 260000, specs: 'RX 7900 XTX + Ryzen 9 7950X', ram: '32 GB DDR5', storage: '1 TB NVMe', cooling: 'AIO 240' },
-  { id: 'b5', name: 'Standard', category: 'builds', cpu: 'intel', gpu: 'nvidia', price: 180000, specs: 'RTX 4070 + i5-14600K', ram: '32 GB DDR5', storage: '1 TB NVMe', cooling: 'AIO 240' },
-  { id: 'b6', name: 'Standard AMD', category: 'builds', cpu: 'amd', gpu: 'nvidia', price: 170000, specs: 'RTX 4070 + Ryzen 7 7800X3D', ram: '32 GB DDR5', storage: '1 TB NVMe', cooling: 'AIO 240' },
-  { id: 'b7', name: 'Budget', category: 'builds', cpu: 'intel', gpu: 'nvidia', price: 120000, specs: 'RTX 4060 + i5-13400', ram: '16 GB DDR5', storage: '512 GB NVMe', cooling: 'Башня' },
-  { id: 'b8', name: 'Creator', category: 'builds', cpu: 'intel', gpu: 'nvidia', price: 320000, specs: 'RTX 4080 + i9-14900K', ram: '64 GB DDR5', storage: '2 TB NVMe', cooling: 'AIO 360' },
-  { id: 'b9', name: 'Creator AMD', category: 'builds', cpu: 'amd', gpu: 'nvidia', price: 310000, specs: 'RTX 4080 + Ryzen 9 7950X', ram: '64 GB DDR5', storage: '2 TB NVMe', cooling: 'AIO 360' },
-  { id: 'b10', name: 'Compact', category: 'builds', cpu: 'intel', gpu: 'nvidia', price: 220000, specs: 'RTX 4070 + i7 Mini-ITX', ram: '32 GB DDR5', storage: '1 TB NVMe', cooling: 'Low-profile' },
-];
+function formatCatalogPrice(p) {
+  const n = Number(p.price) || 0;
+  if (p.category === 'ram') {
+    return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  return n.toLocaleString('ru-RU');
+}
 
 const tabToLabel = {
   all: 'Все',
@@ -84,14 +79,22 @@ function parseStorageCapacity(name) {
 }
 
 async function loadCatalog() {
+  var builds = typeof fetchBuildsDb === 'function' ? await fetchBuildsDb() : null;
+  if (!builds || !builds.length) builds = [];
+
   try {
-    const r = await fetch('data/components.json');
-    componentsDB = await r.json();
-    allProducts = flattenComponents(componentsDB).concat(readyBuilds);
+    var data = typeof fetchComponentsDb === 'function' ? await fetchComponentsDb() : null;
+    if (!data) {
+      var r = await fetch('data/components.json');
+      if (!r.ok) throw new Error('no data');
+      data = await r.json();
+    }
+    componentsDB = data;
+    allProducts = flattenComponents(componentsDB).concat(builds);
     return true;
   } catch (e) {
     console.error('Не удалось загрузить каталог', e);
-    allProducts = readyBuilds;
+    allProducts = builds;
     return false;
   }
 }
@@ -238,10 +241,11 @@ function renderProducts(products) {
       : (p.socket ? `<li><span class="detail-label">Сокет:</span> ${p.socket}</li>` : '');
     const specs = p.specs || p.name || '';
     const safeName = (p.name || '').replace(/"/g, '&quot;');
+    const imgSrc = hasImage && typeof encodeAssetUrl === 'function' ? encodeAssetUrl(p.image) : (hasImage ? p.image : '');
     card.innerHTML = `
       <div class="card catalog-card product-card" data-id="${(p.id || '').toString().replace(/"/g, '&quot;')}" data-name="${safeName}" data-price="${p.price}" data-specs="${specs.replace(/"/g, '&quot;')}">
         <div class="product-photo">
-          ${hasImage ? `<img src="${(p.image || '').replace(/"/g, '&quot;')}" alt="${safeName}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.classList.add('visible')">` : ''}
+          ${hasImage ? `<img src="${(imgSrc || '').replace(/"/g, '&quot;')}" alt="${safeName}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.classList.add('visible')">` : ''}
           <div class="product-photo-placeholder ${hasImage ? '' : 'visible'}">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>
             <span>Нет фото</span>
@@ -251,7 +255,7 @@ function renderProducts(products) {
           <span class="product-badge text-nowrap">${specs}</span>
           <h5 class="card-title product-name">${safeName}</h5>
           <ul class="product-details">${detailsHtml}</ul>
-          <p class="product-price">${(p.price || 0).toLocaleString('ru-RU')} ₽</p>
+          <p class="product-price">${formatCatalogPrice(p)} ₽</p>
           <button class="btn btn-synth btn-sm w-100 btn-instock">В наличии</button>
         </div>
       </div>
@@ -329,6 +333,9 @@ function filterProducts() {
   if (sortVal === 'price-asc') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
   else if (sortVal === 'price-desc') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
   else if (sortVal === 'name') filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  else if (sortVal === 'default' && activeTab === 'builds') {
+    filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  }
 
   renderProducts(filtered);
 }
@@ -399,10 +406,6 @@ document.addEventListener('DOMContentLoaded', function () {
   var grid = document.getElementById('catalogGrid');
   if (!grid) return;
 
-  // Сразу показываем готовые сборки, потом подгружаем JSON
-  if (allProducts.length === 0) {
-    allProducts = readyBuilds.slice();
-  }
   filterProducts();
 
   loadCatalog().then(function () {

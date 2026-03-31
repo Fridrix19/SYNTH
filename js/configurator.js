@@ -4,6 +4,32 @@ let activeCategory = 'case';
 const maxTotal = 600000;
 let configFilter = { cpu: null, gpu: null, cooling: null };
 
+function formatPartPrice(category, price) {
+  const n = Number(price) || 0;
+  if (category === 'ram') {
+    return n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  return n.toLocaleString('ru-RU');
+}
+
+function normalizePhoneDigits(raw) {
+  let d = String(raw || '').replace(/\D/g, '');
+  if (d.length === 11 && d[0] === '8') d = '7' + d.slice(1);
+  return d;
+}
+
+function isValidRuPhone(digits) {
+  if (digits.length === 11 && digits[0] === '7') return true;
+  if (digits.length === 10 && digits[0] === '9') return true;
+  return false;
+}
+
+function isValidName(name) {
+  const t = String(name || '').trim();
+  if (t.length < 2 || t.length > 80) return false;
+  return /^[\p{L}\s'-]+$/u.test(t);
+}
+
 const categoryToKeys = {
   case: ['case'],
   cpu: ['cpu'],
@@ -17,11 +43,16 @@ const categoryToKeys = {
 
 async function loadComponents() {
   try {
-    const r = await fetch('data/components.json');
-    componentsDB = await r.json();
+    var data = typeof fetchComponentsDb === 'function' ? await fetchComponentsDb() : null;
+    if (!data) {
+      var r = await fetch('data/components.json');
+      if (!r.ok) throw new Error('no data');
+      data = await r.json();
+    }
+    componentsDB = data;
     return true;
   } catch (e) {
-    console.error('Не удалось загрузить components.json', e);
+    console.error('Не удалось загрузить комплектующие', e);
     return false;
   }
 }
@@ -115,7 +146,7 @@ function renderPrefilter(category) {
   } else if (hasCooling) {
     block.innerHTML = `
       <span class="text-muted small me-2">Тип:</span>
-      <button type="button" class="config-prefilter-btn${currentVal === 'air' ? ' active' : ''}" data-filter="cooling" data-value="air">Воздушное</button>
+      <button type="button" class="config-prefilter-btn${currentVal === 'air' ? ' active' : ''}" data-filter="cooling" data-value="air">Стандартное</button>
       <button type="button" class="config-prefilter-btn${currentVal === 'water' ? ' active' : ''}" data-filter="cooling" data-value="water">Водяное</button>
       ${currentVal ? '<button type="button" class="config-prefilter-reset">✕</button>' : ''}
     `;
@@ -157,7 +188,7 @@ function updateCenterVisual() {
   }
 
   if (sel?.data?.image) {
-    imgEl.src = sel.data.image;
+    imgEl.src = typeof encodeAssetUrl === 'function' ? encodeAssetUrl(sel.data.image) : sel.data.image;
     imgEl.alt = sel.name;
     imgEl.classList.remove('d-none');
     if (placeholderEl) placeholderEl.classList.add('d-none');
@@ -209,15 +240,16 @@ function renderGallery(category) {
   }
 
   if ((category === 'cpu' && configFilter.cpu == null) || (category === 'gpu' && configFilter.gpu == null) || (category === 'cooling' && configFilter.cooling == null)) {
-    container.innerHTML = '<p class="config-empty-hint text-muted small">Выберите вариант выше, чтобы увидеть список.</p>';
+    container.innerHTML = '<p class="config-empty-hint text-muted small">Выберите вариант ниже, чтобы увидеть список.</p>';
     updateCenterVisual();
     return;
   }
 
   container.innerHTML = parts.map(p => {
     const isSelected = selected?.id === p.id || selected?.name === p.name;
+    const imgUrl = p.image && typeof encodeAssetUrl === 'function' ? encodeAssetUrl(p.image) : p.image;
     const imgHtml = p.image
-      ? `<div class="part-card-photo"><img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.parentElement.classList.add('placeholder')"></div>`
+      ? `<div class="part-card-photo"><img src="${String(imgUrl).replace(/"/g, '&quot;')}" alt="${(p.name || '').replace(/"/g, '&quot;')}" loading="lazy" onerror="this.parentElement.classList.add('placeholder')"></div>`
       : '';
     return `
       <div class="config-part-card part-card ${isSelected ? 'selected' : ''}"
@@ -229,7 +261,7 @@ function renderGallery(category) {
         <div class="part-card-inner">
           <h5 class="part-name">${p.name}</h5>
           ${p.socket ? `<p class="part-specs">${p.socket}</p>` : ''}
-          <p class="part-price">${p.price.toLocaleString('ru-RU')} ₽</p>
+          <p class="part-price">${formatPartPrice(category, p.price)} ₽</p>
           <button class="btn btn-select">Выбрать</button>
         </div>
       </div>
@@ -285,9 +317,7 @@ function setActiveStep(category) {
     var chosenEl = s.querySelector('.step-chosen');
     if (chosenEl) {
       if (isDone && !isActive) {
-        var shortName = selectedParts[cat].name || '';
-        if (shortName.length > 25) shortName = shortName.substring(0, 25) + '…';
-        chosenEl.textContent = shortName;
+        chosenEl.textContent = selectedParts[cat].name || '';
       } else {
         chosenEl.textContent = '';
       }
@@ -326,10 +356,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   setActiveStep('case');
   updateTotal();
 
-  document.getElementById('orderForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const toast = new bootstrap.Toast(document.getElementById('successToast'));
-    toast.show();
-    e.target.reset();
-  });
+  const orderForm = document.getElementById('orderForm');
+  if (orderForm) {
+    orderForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const nameInput = document.getElementById('orderName');
+      const phoneInput = document.getElementById('orderPhone');
+      const nameOk = nameInput && isValidName(nameInput.value);
+      const phoneDigits = phoneInput ? normalizePhoneDigits(phoneInput.value) : '';
+      const phoneOk = isValidRuPhone(phoneDigits);
+      if (nameInput) {
+        nameInput.classList.toggle('is-invalid', !nameOk);
+        nameInput.classList.toggle('is-valid', nameOk);
+      }
+      if (phoneInput) {
+        phoneInput.classList.toggle('is-invalid', !phoneOk);
+        phoneInput.classList.toggle('is-valid', phoneOk);
+      }
+      if (!orderForm.checkValidity() || !nameOk || !phoneOk) {
+        orderForm.classList.add('was-validated');
+        return;
+      }
+      orderForm.classList.remove('was-validated');
+      nameInput?.classList.remove('is-valid', 'is-invalid');
+      phoneInput?.classList.remove('is-valid', 'is-invalid');
+      const toast = new bootstrap.Toast(document.getElementById('successToast'));
+      toast.show();
+      orderForm.reset();
+    });
+  }
 });

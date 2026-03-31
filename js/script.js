@@ -1,6 +1,8 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await initHomeBuildsGrid();
   initTilt();
   initScrollAnimations();
+  initContactForm();
   if (document.getElementById('partsContainer')) {
     initPartSelection();
     filterParts('gpu');
@@ -9,6 +11,62 @@ document.addEventListener('DOMContentLoaded', () => {
     initOrderForm();
   }
 });
+
+function escHomeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/"/g, '&quot;');
+}
+
+function homeBuildCardHtml(b) {
+  const name = b.name || '';
+  const specs = b.specs || '';
+  const price = (Number(b.price) || 0).toLocaleString('ru-RU');
+  const src =
+    b.image && typeof encodeAssetUrl === 'function'
+      ? encodeAssetUrl(b.image)
+      : b.image || '';
+  const badge = b.badge ? `<span class="build-badge">${escHomeHtml(b.badge)}</span>` : '';
+  const safeSrc = escHomeHtml(src);
+  const safeName = escHomeHtml(name);
+  const safeSpecs = escHomeHtml(specs);
+  return `
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card build-card">
+            <div class="build-card-photo-wrap"><img class="build-card-photo" src="${safeSrc}" alt="${safeName}" loading="eager" decoding="async" width="400" height="300" onerror="this.closest('.build-card-photo-wrap').classList.add('no-photo')"></div>
+            <div class="card-body">
+              ${badge}
+              <h3 class="card-title">${safeName}</h3>
+              <p class="card-text text-muted">${safeSpecs}</p>
+              <p class="build-price">${price} ₽</p>
+              <a href="catalog.html" class="btn btn-synth btn-sm w-100 mt-auto">В каталог</a>
+            </div>
+          </div>
+        </div>`;
+}
+
+async function initHomeBuildsGrid() {
+  const el = document.getElementById('homeBuildsGrid');
+  if (!el) return;
+
+  let list = [];
+  try {
+    if (typeof fetchBuildsDb === 'function') {
+      const fetched = await fetchBuildsDb();
+      if (fetched && fetched.length) list = fetched;
+    }
+  } catch (_) {}
+
+  const featured = list
+    .filter((b) => b.homeOrder != null)
+    .sort((a, b) => (a.homeOrder || 0) - (b.homeOrder || 0));
+
+  if (featured.length) {
+    el.innerHTML = featured.map(homeBuildCardHtml).join('');
+  }
+  el.removeAttribute('aria-busy');
+}
 
 function initTilt() {
   const tiltCards = document.querySelectorAll('.tilt-card');
@@ -51,29 +109,15 @@ function initScrollAnimations() {
     ease: 'power3.out'
   });
 
-  gsap.from('.advantage-card', {
-    scrollTrigger: {
-      trigger: '#advantages',
-      start: 'top 80%',
-      toggleActions: 'play none none reverse'
-    },
-    opacity: 0,
-    y: 50,
-    duration: 0.6,
-    stagger: 0.15,
-    ease: 'power2.out'
-  });
-
-  gsap.from('.build-card', {
+  gsap.from('.popular-builds .builds-grid', {
     scrollTrigger: {
       trigger: '.popular-builds',
       start: 'top 80%',
       toggleActions: 'play none none reverse'
     },
     opacity: 0,
-    y: 30,
-    duration: 0.5,
-    stagger: 0.1,
+    y: 24,
+    duration: 0.55,
     ease: 'power2.out'
   });
 
@@ -174,4 +218,66 @@ function initOrderForm() {
       form.reset();
     });
   }
+}
+
+function initContactForm() {
+  const form = document.getElementById('contactForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    form.classList.add('was-validated');
+    if (!form.checkValidity()) return;
+
+    const btn = document.getElementById('contactSubmit');
+    const accessKey = form.querySelector('input[name="access_key"]')?.value?.trim();
+    const name = document.getElementById('contactName').value.trim();
+    const email = document.getElementById('contactEmail').value.trim();
+    const message = document.getElementById('contactMessage').value.trim();
+
+    if (btn) btn.disabled = true;
+    try {
+      const r = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: accessKey,
+          subject: `[SYNTH] Сообщение от ${name}`,
+          name,
+          email,
+          message,
+        }),
+      });
+      let data = {};
+      try {
+        data = await r.json();
+      } catch (_) {}
+
+      const toastOk = document.getElementById('contactToastOk');
+      const toastErr = document.getElementById('contactToastErr');
+      const errText = document.getElementById('contactToastErrText');
+
+      if (r.ok && data.success) {
+        if (toastOk) new bootstrap.Toast(toastOk).show();
+        form.reset();
+        form.classList.remove('was-validated');
+      } else {
+        const apiMsg = data.message || data.error;
+        if (errText) {
+          errText.textContent =
+            typeof apiMsg === 'string' ? apiMsg : 'Не удалось отправить. Проверьте ключ Web3Forms или попробуйте позже.';
+        }
+        if (toastErr) new bootstrap.Toast(toastErr).show();
+      }
+    } catch (_) {
+      const errText = document.getElementById('contactToastErrText');
+      const toastErr = document.getElementById('contactToastErr');
+      if (errText) {
+        errText.textContent = 'Нет связи с сервисом отправки. Проверьте интернет или отключите блокировщики.';
+      }
+      if (toastErr) new bootstrap.Toast(toastErr).show();
+    }
+    if (btn) btn.disabled = false;
+  });
 }

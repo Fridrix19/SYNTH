@@ -21,9 +21,9 @@
     { "id": "r7-7700", "name": "AMD Ryzen 7 7700", "socket": "AM5", "price": 22000, "image": "atribut/cpu/RYZEN 7 7700 AM5 1.png", "hot": false, "isAmd": true }
   ],
   "motherboard": [
-    { "id": "asus-h610-lga1700", "name": "ASUS H610", "socket": "LGA1700", "price": 8500 },
-    { "id": "gb-b760-lga1700", "name": "GIGABYTE B760", "socket": "LGA1700", "price": 12000 },
-    { "id": "msi-z790-lga1700", "name": "MSI Z790", "socket": "LGA1700", "price": 22000 },
+    { "id": "asus-h610-lga1700", "name": "ASUS H610", "socket": "LGA1700", "price": 8500, "image": "atribut/motherboard/ASUS H610 LGA1700 1.png" },
+    { "id": "gb-b760-lga1700", "name": "GIGABYTE B760", "socket": "LGA1700", "price": 12000, "image": "atribut/motherboard/GIGABYTE B760 LGA1700 1.png" },
+    { "id": "msi-z790-lga1700", "name": "MSI Z790", "socket": "LGA1700", "price": 22000, "image": "atribut/motherboard/MSI Z790 LGA1700 1.png" },
     { "id": "asus-a620-am5", "name": "ASUS A620", "socket": "AM5", "price": 10000, "image": "atribut/motherboard/ASUS A620 AM5 1.png" },
     { "id": "asus-b550-am4", "name": "ASUS B550", "socket": "AM4", "price": 12000, "image": "atribut/motherboard/ASUS B550 AM4 1.png" },
     { "id": "asus-b550m-am4", "name": "ASUS B550M", "socket": "AM4", "price": 10000, "image": "atribut/motherboard/ASUS B550M AM4 1.png" },
@@ -114,15 +114,15 @@
     { "id": "wb-purple-6tb", "name": "WD Purple 6TB", "price": 18000, "image": "atribut/HDD/WB PURPLE 6TB 1.png" }
   ],
   "psu": [
-    { "id": "psu-550", "name": "550W 80+ Bronze", "price": 4500 },
-    { "id": "psu-650", "name": "650W 80+ Bronze", "price": 5500 },
-    { "id": "psu-750", "name": "750W 80+ Gold", "price": 8500 },
-    { "id": "psu-850", "name": "850W 80+ Gold", "price": 11000 },
-    { "id": "psu-1000", "name": "1000W 80+ Gold", "price": 15000 }
+    { "id": "psu-550", "name": "550W 80+ Bronze", "price": 4500, "image": "atribut/psu/PSU 550W 1.png" },
+    { "id": "psu-650", "name": "650W 80+ Bronze", "price": 5500, "image": "atribut/psu/PSU 650W 1.png" },
+    { "id": "psu-750", "name": "750W 80+ Gold", "price": 8500, "image": "atribut/psu/PSU 750W 1.png" },
+    { "id": "psu-850", "name": "850W 80+ Gold", "price": 11000, "image": "atribut/psu/PSU 850W 1.png" },
+    { "id": "psu-1000", "name": "1000W 80+ Gold", "price": 15000, "image": "atribut/psu/PSU 1000W 1.png" }
   ],
   "case": [
-    { "id": "case-1", "name": "Корпус ATX стандарт", "price": 5000 },
-    { "id": "case-2", "name": "Корпус ATX с стеклом", "price": 8000 },
-    { "id": "case-3", "name": "Корпус Mini-ITX", "price": 12000 }
+    { "id": "case-1", "name": "Корпус ATX стандарт", "price": 5000, "image": "atribut/box/Corsair 5000D 1.png" },
+    { "id": "case-2", "name": "Корпус ATX с стеклом", "price": 8000, "image": "atribut/box/Lian Li O11 Dynamic 1.png" },
+    { "id": "case-3", "name": "Корпус Mini-ITX", "price": 12000, "image": "atribut/box/NZXT H7 Elite 1.png" }
   ]
 }
