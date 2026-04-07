@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SYNTH — Премиальные ПК под заказ</title>
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +26,7 @@
             <a class="nav-link" href="catalog.html">Каталог</a>
             <a class="nav-link" href="configurator.html">Конфигуратор</a>
             <a class="nav-link" href="faq.html">FAQ</a>
-            <a class="nav-link" href="#contact">Контакты</a>
+            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#contactModal">Контакты</a>
           </div>
         </div>
       </div>
@@ -74,7 +75,7 @@
   <section class="popular-builds py-5">
     <div class="container-1440">
       <h2 class="section-title text-center mb-2">Готовые сборки</h2>
-      <p class="text-center text-muted mb-5">Популярные конфигурации. Выберите и оформите заказ в один клик.</p>
+      <p class="text-center text-muted mb-5">Готовые конфигурации с актуальными комплектующими. Подробности и заказ — в каталоге.</p>
       <div class="row g-4 builds-grid justify-content-center" id="homeBuildsGrid" aria-busy="true"></div>
       <div class="text-center mt-5">
         <a href="catalog.html" class="btn btn-outline-light btn-lg">Смотреть весь каталог</a>
@@ -91,11 +92,27 @@
   </section>
 
   <section class="contact-section py-5" id="contact">
-    <div class="container-1440">
-      <h2 class="section-title text-center mb-2">Обратная связь</h2>
-      <p class="text-center text-muted mb-4">Напишите нам — ответим на указанный email.</p>
-      <div class="card order-card">
-        <div class="card-body p-4">
+    <div class="container-1440 text-center">
+      <h2 class="section-title mb-2">Обратная связь</h2>
+      <p class="text-muted mb-4">Напишите нам — ответим на указанный email.</p>
+      <button type="button" class="btn btn-synth btn-lg" data-bs-toggle="modal" data-bs-target="#contactModal">Написать нам</button>
+    </div>
+  </section>
+
+  <footer class="footer py-4">
+    <div class="container-1440 text-center text-muted">
+      SYNTH — премиальные ПК под заказ
+    </div>
+  </footer>
+
+  <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-dark">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="contactModalLabel">Обратная связь</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
           <form id="contactForm" class="needs-validation" action="https://api.web3forms.com/submit" method="POST" novalidate>
             <input type="hidden" name="access_key" value="f03f16f8-0c76-461c-93f0-6bd2204c05bf">
             <div class="mb-3">
@@ -113,19 +130,12 @@
               <textarea class="form-control form-control-dark" id="contactMessage" name="message" rows="4" required minlength="10" maxlength="8000" placeholder="Ваш вопрос или заявка"></textarea>
               <div class="invalid-feedback">Не менее 10 символов</div>
             </div>
-            <p class="small text-muted mb-3" id="contactFormHint">Сообщение уходит через Web3Forms на вашу почту. В кабинете Web3Forms можно ограничить отправку по домену сайта.</p>
             <button type="submit" class="btn btn-synth w-100" id="contactSubmit">Отправить</button>
           </form>
         </div>
       </div>
     </div>
-  </section>
-
-  <footer class="footer py-4">
-    <div class="container-1440 text-center text-muted">
-      SYNTH — премиальные ПК под заказ
-    </div>
-  </footer>
+  </div>
 
   <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="contactToastOk" class="toast align-items-center text-bg-success border-0" role="alert">
@@ -147,6 +157,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+  <script src="js/contact-modal.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>

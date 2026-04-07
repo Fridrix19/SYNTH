@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initHomeBuildsGrid();
   initTilt();
   initScrollAnimations();
-  initContactForm();
   if (document.getElementById('partsContainer')) {
     initPartSelection();
     filterParts('gpu');
@@ -34,7 +33,7 @@ function homeBuildCardHtml(b) {
   return `
         <div class="col-12 col-md-6 col-lg-4">
           <div class="card build-card">
-            <div class="build-card-photo-wrap"><img class="build-card-photo" src="${safeSrc}" alt="${safeName}" loading="eager" decoding="async" width="400" height="300" onerror="this.closest('.build-card-photo-wrap').classList.add('no-photo')"></div>
+            <div class="build-card-photo-wrap"><img class="build-card-photo" src="${safeSrc}" alt="${safeName}" loading="eager" decoding="async" width="480" height="480" onerror="this.closest('.build-card-photo-wrap').classList.add('no-photo')"></div>
             <div class="card-body">
               ${badge}
               <h3 class="card-title">${safeName}</h3>
@@ -218,66 +217,4 @@ function initOrderForm() {
       form.reset();
     });
   }
-}
-
-function initContactForm() {
-  const form = document.getElementById('contactForm');
-  if (!form) return;
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    form.classList.add('was-validated');
-    if (!form.checkValidity()) return;
-
-    const btn = document.getElementById('contactSubmit');
-    const accessKey = form.querySelector('input[name="access_key"]')?.value?.trim();
-    const name = document.getElementById('contactName').value.trim();
-    const email = document.getElementById('contactEmail').value.trim();
-    const message = document.getElementById('contactMessage').value.trim();
-
-    if (btn) btn.disabled = true;
-    try {
-      const r = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          access_key: accessKey,
-          subject: `[SYNTH] Сообщение от ${name}`,
-          name,
-          email,
-          message,
-        }),
-      });
-      let data = {};
-      try {
-        data = await r.json();
-      } catch (_) {}
-
-      const toastOk = document.getElementById('contactToastOk');
-      const toastErr = document.getElementById('contactToastErr');
-      const errText = document.getElementById('contactToastErrText');
-
-      if (r.ok && data.success) {
-        if (toastOk) new bootstrap.Toast(toastOk).show();
-        form.reset();
-        form.classList.remove('was-validated');
-      } else {
-        const apiMsg = data.message || data.error;
-        if (errText) {
-          errText.textContent =
-            typeof apiMsg === 'string' ? apiMsg : 'Не удалось отправить. Проверьте ключ Web3Forms или попробуйте позже.';
-        }
-        if (toastErr) new bootstrap.Toast(toastErr).show();
-      }
-    } catch (_) {
-      const errText = document.getElementById('contactToastErrText');
-      const toastErr = document.getElementById('contactToastErr');
-      if (errText) {
-        errText.textContent = 'Нет связи с сервисом отправки. Проверьте интернет или отключите блокировщики.';
-      }
-      if (toastErr) new bootstrap.Toast(toastErr).show();
-    }
-    if (btn) btn.disabled = false;
-  });
 }

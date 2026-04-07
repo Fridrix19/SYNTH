@@ -4,6 +4,53 @@ let activeCategory = 'case';
 const maxTotal = 600000;
 let configFilter = { cpu: null, gpu: null, cooling: null };
 
+const CONFIG_STEP_CATEGORIES = ['case', 'cpu', 'mb', 'gpu', 'ram', 'cooling', 'storage', 'psu'];
+
+let lastGalleryState = { category: null, partsKey: null };
+
+function getGalleryPartsKey(parts) {
+  return parts.length ? parts.map((p) => p.id || p.name).join('\x1e') : '';
+}
+
+function invalidateGalleryCache() {
+  lastGalleryState.partsKey = null;
+}
+
+function canReuseGalleryDom(container, category, partsKey, parts) {
+  if (!parts.length || !partsKey) return false;
+  if (lastGalleryState.category !== category || lastGalleryState.partsKey !== partsKey) return false;
+  const cards = container.querySelectorAll('.part-card');
+  if (cards.length !== parts.length) return false;
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  const c0 = cards[0];
+  const cLast = cards[cards.length - 1];
+  const match = (p, el) =>
+    !!el &&
+    ((p.id && el.dataset.id === String(p.id)) || (!p.id && el.dataset.name === p.name));
+  return match(first, c0) && match(last, cLast);
+}
+
+function syncPartCardSelection(container, selected) {
+  container.querySelectorAll('.part-card').forEach((c) => {
+    const sel = selected;
+    const isSelected =
+      !!sel &&
+      ((sel.id && c.dataset.id === String(sel.id)) || (!sel.id && c.dataset.name === sel.name));
+    c.classList.toggle('selected', isSelected);
+  });
+}
+
+function isConfigurationComplete() {
+  return CONFIG_STEP_CATEGORIES.every((c) => selectedParts[c]);
+}
+
+function updateOrderMasterButton() {
+  const btn = document.getElementById('orderMasterBtn');
+  if (!btn) return;
+  btn.disabled = !isConfigurationComplete();
+}
+
 function formatPartPrice(category, price) {
   const n = Number(price) || 0;
   if (category === 'ram') {
@@ -188,13 +235,16 @@ function updateCenterVisual() {
   }
 
   if (sel?.data?.image) {
-    imgEl.src = typeof encodeAssetUrl === 'function' ? encodeAssetUrl(sel.data.image) : sel.data.image;
-    imgEl.alt = sel.name;
+    const url =
+      typeof encodeAssetUrl === 'function' ? encodeAssetUrl(sel.data.image) : sel.data.image;
+    const cur = imgEl.getAttribute('src') || '';
+    if (cur !== url) imgEl.setAttribute('src', url);
+    imgEl.alt = sel.name || '';
     imgEl.classList.remove('d-none');
     if (placeholderEl) placeholderEl.classList.add('d-none');
   } else {
     imgEl.classList.add('d-none');
-    imgEl.removeAttribute('src');
+    if (imgEl.hasAttribute('src')) imgEl.removeAttribute('src');
     if (placeholderEl) placeholderEl.classList.remove('d-none');
   }
   nameEl.textContent = sel?.name || '';
@@ -229,27 +279,39 @@ function renderGallery(category) {
   }
 
   if (category === 'mb' && !selectedParts.cpu) {
+    invalidateGalleryCache();
     container.innerHTML = '<p class="config-empty-hint text-muted small">Сначала выберите процессор — список плат подстроится под сокет.</p>';
     updateCenterVisual();
     return;
   }
   if (category === 'mb' && parts.length === 0) {
+    invalidateGalleryCache();
     container.innerHTML = '<p class="config-empty-hint text-muted small">Нет материнских плат для выбранного сокета.</p>';
     updateCenterVisual();
     return;
   }
 
   if ((category === 'cpu' && configFilter.cpu == null) || (category === 'gpu' && configFilter.gpu == null) || (category === 'cooling' && configFilter.cooling == null)) {
+    invalidateGalleryCache();
     container.innerHTML = '<p class="config-empty-hint text-muted small">Выберите вариант ниже, чтобы увидеть список.</p>';
     updateCenterVisual();
     return;
   }
 
+  const partsKey = getGalleryPartsKey(parts);
+  if (canReuseGalleryDom(container, category, partsKey, parts)) {
+    syncPartCardSelection(container, selected);
+    updateCenterVisual();
+    return;
+  }
+
+  lastGalleryState = { category, partsKey };
+
   container.innerHTML = parts.map(p => {
     const isSelected = selected?.id === p.id || selected?.name === p.name;
     const imgUrl = p.image && typeof encodeAssetUrl === 'function' ? encodeAssetUrl(p.image) : p.image;
     const imgHtml = p.image
-      ? `<div class="part-card-photo"><img src="${String(imgUrl).replace(/"/g, '&quot;')}" alt="${(p.name || '').replace(/"/g, '&quot;')}" loading="lazy" onerror="this.parentElement.classList.add('placeholder')"></div>`
+      ? `<div class="part-card-photo"><img src="${String(imgUrl).replace(/"/g, '&quot;')}" alt="${(p.name || '').replace(/"/g, '&quot;')}" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('placeholder')"></div>`
       : '';
     return `
       <div class="config-part-card part-card ${isSelected ? 'selected' : ''}"
@@ -325,6 +387,7 @@ function setActiveStep(category) {
   });
   renderGallery(category);
   updateCenterVisual();
+  updateOrderMasterButton();
 }
 
 function updateTotal() {
@@ -340,6 +403,8 @@ function updateTotal() {
   const progress = Math.min(100, (sum / maxTotal) * 100);
   const bar = document.getElementById('progressBar');
   if (bar) bar.style.width = progress + '%';
+
+  updateOrderMasterButton();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -355,6 +420,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   setActiveStep('case');
   updateTotal();
+
+  const orderMasterBtn = document.getElementById('orderMasterBtn');
+  if (orderMasterBtn) {
+    orderMasterBtn.addEventListener('click', () => {
+      if (orderMasterBtn.disabled) return;
+      document.getElementById('order')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
 
   const orderForm = document.getElementById('orderForm');
   if (orderForm) {

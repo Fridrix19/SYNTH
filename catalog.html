@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Каталог готовых ПК — SYNTH</title>
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +26,7 @@
             <a class="nav-link active" href="catalog.html">Каталог</a>
             <a class="nav-link" href="configurator.html">Конфигуратор</a>
             <a class="nav-link" href="faq.html">FAQ</a>
-            <a class="nav-link" href="index.html#contact">Контакты</a>
+            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#contactModal">Контакты</a>
           </div>
         </div>
       </div>
@@ -275,6 +276,53 @@
     </div>
   </div>
 
+  <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-dark">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="contactModalLabel">Обратная связь</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <form id="contactForm" class="needs-validation" action="https://api.web3forms.com/submit" method="POST" novalidate>
+            <input type="hidden" name="access_key" value="f03f16f8-0c76-461c-93f0-6bd2204c05bf">
+            <div class="mb-3">
+              <label class="form-label" for="contactName">Имя</label>
+              <input type="text" class="form-control form-control-dark" id="contactName" name="name" required minlength="2" maxlength="120" autocomplete="name" placeholder="Как к вам обращаться">
+              <div class="invalid-feedback">Введите имя</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="contactEmail">Email</label>
+              <input type="email" class="form-control form-control-dark" id="contactEmail" name="email" required autocomplete="email" placeholder="Для ответа">
+              <div class="invalid-feedback">Укажите корректный email</div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label" for="contactMessage">Сообщение</label>
+              <textarea class="form-control form-control-dark" id="contactMessage" name="message" rows="4" required minlength="10" maxlength="8000" placeholder="Ваш вопрос или заявка"></textarea>
+              <div class="invalid-feedback">Не менее 10 символов</div>
+            </div>
+            <button type="submit" class="btn btn-synth w-100" id="contactSubmit">Отправить</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="contactToastOk" class="toast align-items-center text-bg-success border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">Сообщение отправлено. Мы свяжемся с вами по email.</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+    <div id="contactToastErr" class="toast align-items-center text-bg-danger border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body" id="contactToastErrText">Не удалось отправить. Попробуйте позже.</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer py-4">
     <div class="container-1440 text-center text-muted">
       SYNTH — цифровой бутик премиальных ПК
@@ -283,6 +331,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/components-api.js"></script>
+  <script src="js/contact-modal.js"></script>
   <script src="js/catalog.js"></script>
 </body>
 </html>
