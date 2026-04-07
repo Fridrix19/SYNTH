@@ -85,28 +85,8 @@ function initScrollAnimations() {
 
   gsap.registerPlugin(ScrollTrigger);
 
-  gsap.from('.hero-title', {
-    opacity: 0,
-    y: 40,
-    duration: 1,
-    ease: 'power3.out'
-  });
-
-  gsap.from('.hero-subtitle', {
-    opacity: 0,
-    y: 20,
-    duration: 0.8,
-    delay: 0.2,
-    ease: 'power3.out'
-  });
-
-  gsap.from('.hero-cta', {
-    opacity: 0,
-    y: 16,
-    duration: 0.6,
-    delay: 0.5,
-    ease: 'power3.out'
-  });
+  /* Hero: только CSS-анимации (styles.css), без gsap.from — иначе после загрузки/refresh
+     GSAP мог оставлять кнопке opacity:0 или конфликтовать с анимацией заголовка */
 
   gsap.from('.popular-builds .builds-grid', {
     scrollTrigger: {
